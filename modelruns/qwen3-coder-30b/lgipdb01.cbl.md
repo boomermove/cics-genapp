@@ -397,11 +397,11 @@ Below is a refactored version of the commercial insurance policy retrieval progr
 This refactored version addresses the original issues while maintaining the same functionality, improving code maintainability, and 
 reducing potential for errors in future maintenance.
 
-total duration:       1m42.491215373s
-load duration:        26.813549ms
-prompt eval count:    1108 token(s)
-prompt eval duration: 3.292345523s
-prompt eval rate:     336.54 tokens/s
-eval count:           2568 token(s)
-eval duration:        1m39.146128969s
-eval rate:            25.90 tokens/s
+>total duration:       1m42.491215373s  
+load duration:        26.813549ms  
+prompt eval count:    1108 token(s)  
+prompt eval duration: 3.292345523s  
+prompt eval rate:     336.54 tokens/s  
+eval count:           2568 token(s)  
+eval duration:        1m39.146128969s  
+eval rate:            25.90 tokens/s  

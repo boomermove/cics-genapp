@@ -201,11 +201,11 @@ Fibonacci sequence up to 100 :
 The program efficiently generates Fibonacci numbers up to the specified upper bound and displays them in a readable format. The 
 iterative approach ensures good performance even for larger bounds within the supported range.
 
-total duration:       1m36.735658821s
-load duration:        2.967615464s
-prompt eval count:    2694 token(s)
-prompt eval duration: 8.77136521s
-prompt eval rate:     307.14 tokens/s
-eval count:           1639 token(s)
-eval duration:        1m24.972044235s
-eval rate:            19.29 tokens/s
+>total duration:       1m36.735658821s  
+load duration:        2.967615464s  
+prompt eval count:    2694 token(s)  
+prompt eval duration: 8.77136521s  
+prompt eval rate:     307.14 tokens/s  
+eval count:           1639 token(s)  
+eval duration:        1m24.972044235s  
+eval rate:            19.29 tokens/s  

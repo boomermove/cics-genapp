@@ -113,11 +113,11 @@ The program implements robust error handling including:
 This is a typical mainframe batch/transactional program that follows enterprise standards for database integration and CICS 
 application development.
 
-> total duration:       55.0905493s
-> load duration:        24.137718ms
-> prompt eval count:    2929 token(s)
-> prompt eval duration: 8.896927321s
-> prompt eval rate:     329.21 tokens/s
-> eval count:           920 token(s)
-> eval duration:        46.151083886s
-> eval rate:            19.93 tokens/s
+>total duration:       55.0905493s  
+load duration:        24.137718ms  
+prompt eval count:    2929 token(s)  
+prompt eval duration: 8.896927321s  
+prompt eval rate:     329.21 tokens/s  
+eval count:           920 token(s)  
+eval duration:        46.151083886s  
+eval rate:            19.93 tokens/s  

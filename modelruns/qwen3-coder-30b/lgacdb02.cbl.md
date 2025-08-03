@@ -119,11 +119,11 @@ This program serves as a critical component in a larger customer management syst
 The program demonstrates typical enterprise COBOL application characteristics with strong integration to mainframe systems (CICS/DB2) 
 and robust error handling for mission-critical operations.
 
-> total duration:       1m21.132293639s
-> load duration:        24.871687ms
-> prompt eval count:    3811 token(s)
-> prompt eval duration: 12.603419622s
-> prompt eval rate:     302.38 tokens/s
-> eval count:           1136 token(s)
-> eval duration:        1m8.460902126s
-> eval rate:            16.59 tokens/s
+> total duration:       1m21.132293639s  
+load duration:        24.871687ms  
+prompt eval count:    3811 token(s)  
+prompt eval duration: 12.603419622s  
+prompt eval rate:     302.38 tokens/s  
+eval count:           1136 token(s)  
+eval duration:        1m8.460902126s  
+eval rate:            16.59 tokens/s  

@@ -176,11 +176,11 @@ Sorted Array:
 This implementation follows standard COBOL conventions and can be easily adapted for different data sizes or requirements by modifying 
 the array dimensions and initial data values.
 
-> total duration:       2m6.886115327s
-> load duration:        8.737187955s
-> prompt eval count:    3869 token(s)
-> prompt eval duration: 13.13414969s
-> prompt eval rate:     294.58 tokens/s
-> eval count:           1725 token(s)
-> eval duration:        1m44.985677734s
-> eval rate:            16.43 tokens/s
+> total duration:       2m6.886115327s  
+load duration:        8.737187955s  
+prompt eval count:    3869 token(s)  
+prompt eval duration: 13.13414969s  
+prompt eval rate:     294.58 tokens/s  
+eval count:           1725 token(s)  
+eval duration:        1m44.985677734s  
+eval rate:            16.43 tokens/s  

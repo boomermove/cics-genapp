@@ -1,4 +1,5 @@
->>> Please write a quick sort implementation in COBOL.
+>Please write a quick sort implementation in COBOL.
+
 # Quick Sort Implementation in COBOL
 
 Here's a complete COBOL implementation of the Quick Sort algorithm:

@@ -1,4 +1,5 @@
->>> Please implement a Fibonacci sequence generator whose upper bounds is an integer provided as program input.
+>Please implement a Fibonacci sequence generator whose upper bounds is an integer provided as program input.
+
 # Fibonacci Sequence Generator in COBOL
 
 ```cobol

@@ -1,4 +1,5 @@
->>> Please analyze the following program and provide a comprehensive description of its functionality.
+>Please analyze the following program and provide a comprehensive description of its functionality.
+
 I'll be happy to provide a detailed comprehensive analysis including:
 
 - **Overall Purpose**: What the program is designed to accomplish
@@ -140,15 +141,17 @@ If you'd like help:
 
 ...feel free to ask!
 
-total duration:       1m20.32036133s
-load duration:        23.737978ms
-prompt eval count:    4096 token(s)
-prompt eval duration: 13.974653389s
-prompt eval rate:     293.10 tokens/s
-eval count:           1085 token(s)
-eval duration:        1m6.300923192s
-eval rate:            16.36 tokens/s
->>> Please refactor the code to address the issues you identified.
+>total duration:       1m20.32036133s  
+load duration:        23.737978ms  
+prompt eval count:    4096 token(s)  
+prompt eval duration: 13.974653389s  
+prompt eval rate:     293.10 tokens/s  
+eval count:           1085 token(s)  
+eval duration:        1m6.300923192s  
+eval rate:            16.36 tokens/s  
+
+>Please refactor the code to address the issues you identified.
+
 # Refactored COBOL Code for Commercial Insurance Policy Retrieval
 
 Below is a refactored version of the commercial insurance policy retrieval program that addresses the identified issues:

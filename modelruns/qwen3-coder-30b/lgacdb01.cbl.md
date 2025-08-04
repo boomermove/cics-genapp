@@ -1,4 +1,5 @@
->>> Hello. Please analyze the following program and provide a comprehensive description of its fucntionality.
+>Hello. Please analyze the following program and provide a comprehensive description of its fucntionality.
+
 I'd be happy to analyze a program for you and provide a comprehensive description of its functionality. I'll give you:
 
 - A detailed breakdown of what the program does

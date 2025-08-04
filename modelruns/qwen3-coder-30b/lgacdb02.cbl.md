@@ -1,4 +1,4 @@
->>> Please analyze the following program and provide a comprehensive description of its functionality.
+>Please analyze the following program and provide a comprehensive description of its functionality.
 
 I'll be happy to provide a comprehensive description of its functionality including:
 

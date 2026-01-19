@@ -15,8 +15,8 @@
       * Security Settings                                              *
       *----------------------------------------------------------------*
        01  SECURITY-CONFIG.
-           05  SC-HASH-ALGORITHM        PIC X(8) VALUE 'SHA256  '.
-           05  SC-SALT-LENGTH          PIC 9(2) VALUE 16.
+           05  SC-HASH-ALGORITHM        PIC X(8) VALUE 'SHA-256 '.
+           05  SC-SALT-LENGTH          PIC 9(2) VALUE 32.
            05  SC-MIN-PASSWORD-LENGTH  PIC 9(2) VALUE 08.
            05  SC-MAX-PASSWORD-LENGTH  PIC 9(2) VALUE 32.
            05  SC-PASSWORD-EXPIRY-DAYS PIC 9(3) VALUE 090.

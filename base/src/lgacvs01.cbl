@@ -21,12 +21,13 @@
        01  WS-STARTCODE              PIC XX Value spaces.
        01  WS-SYSID                  PIC X(4) Value spaces.
        01  WS-Commarea-Len           PIC S9(4) COMP.
-      ******************************
-      * Variables for time/date processing
-       01  WS-ABSTIME                  PIC S9(8) COMP VALUE +0.
-       01  WS-TIME                     PIC X(8)  VALUE SPACES.
-       01  WS-DATE                     PIC X(10) VALUE SPACES.
-      * Error Message structure
+
+      *----------------------------------------------------------------*
+      * Common error handling copybook                                 *
+      *----------------------------------------------------------------*
+           COPY LGERR.
+
+      * Error Message structure (program-specific VSAM format)
        01  ERROR-MSG.
            03 EM-DATE                  PIC X(8)  VALUE SPACES.
            03 FILLER                   PIC X     VALUE SPACES.
@@ -42,10 +43,6 @@
              05 FILLER                 PIC X(7)  VALUE ' RESP2='.
              05 EM-RESP2RC             PIC +9(5) USAGE DISPLAY.
 
-       01  CA-ERROR-MSG.
-           03 FILLER                   PIC X(9)  VALUE 'COMMAREA='.
-           03 CA-DATA                  PIC X(90) VALUE SPACES.
-       
        01  CUSTOMER-RECORD-SIZE        PIC S9(4) BINARY VALUE 0225.
 
       *****************************************************************
@@ -85,37 +82,25 @@
        A-EXIT.
            EXIT.
            GOBACK.
+
+      *---------------------------------------------------------------*
+      * Error message routine using common copybook                   *
       *---------------------------------------------------------------*
        WRITE-ERROR-MESSAGE.
-           EXEC CICS ASKTIME ABSTIME(WS-ABSTIME)
-           END-EXEC
-           EXEC CICS FORMATTIME ABSTIME(WS-ABSTIME)
-                     MMDDYYYY(WS-DATE)
-                     TIME(WS-TIME)
-           END-EXEC
-      *
-           MOVE WS-DATE TO EM-DATE
-           MOVE WS-TIME TO EM-TIME
+      * Format time and date
+           PERFORM LGERR-FORMAT-TIME
+           MOVE WS-ERR-DATE TO EM-DATE
+           MOVE WS-ERR-TIME TO EM-TIME
+      * Populate VSAM-specific error fields
            Move CA-Customer-Num To EM-Cusnum
            Move WS-RESP         To EM-RespRC
            Move WS-RESP2        To EM-Resp2RC
-           EXEC CICS LINK PROGRAM('LGSTSQ')
-                     COMMAREA(ERROR-MSG)
-                     LENGTH(LENGTH OF ERROR-MSG)
-           END-EXEC.
-           IF EIBCALEN > 0 THEN
-             IF EIBCALEN < 91 THEN
-               MOVE DFHCOMMAREA(1:EIBCALEN) TO CA-DATA
-               EXEC CICS LINK PROGRAM('LGSTSQ')
-                         COMMAREA(CA-ERROR-MSG)
-                         LENGTH(Length Of CA-ERROR-MSG)
-               END-EXEC
-             ELSE
-               MOVE DFHCOMMAREA(1:90) TO CA-DATA
-               EXEC CICS LINK PROGRAM('LGSTSQ')
-                         COMMAREA(CA-ERROR-MSG)
-                         LENGTH(Length Of CA-ERROR-MSG)
-               END-EXEC
-             END-IF
-           END-IF.
-           EXIT.
+      * Write error message and commarea to TSQ
+           PERFORM LGERR-WRITE-MSG
+           PERFORM LGERR-LOG-COMMAREA
+           .
+
+      *----------------------------------------------------------------*
+      * Common error handling procedures from copybook                 *
+      *----------------------------------------------------------------*
+           COPY LGERRPRC.

@@ -1,0 +1,1023 @@
+
+╭─── Claude Code v2.1.58 ──────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Peter!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                       ▐▛███▜▌                      │ ─────────────────────── │
+│                      ▝▜█████▛▘                     │ Recent activity         │
+│                        ▘▘ ▝▝                       │ 1mo ago  What does thi… │
+│                                                    │ /resume for more        │
+│   Opus 4.6 · Claude Max · petermoser@live.com's    │                         │
+│   Organization                                     │                         │
+│     D:\Users\peter\OneDrive\Repos\cics-genapp      │                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Please explain what the code in this project does, identify flows and     
+  dependencies, and produce data dictionaries.                              
+
+● I'll explore the project structure and key files to understand this codebase
+  thoroughly.
+
+● 3 Explore agents finished (ctrl+o to expand)
+   ├─ Explore project structure · 13 tool uses · 25.9k tokens
+   │  ⎿  Done
+   ├─ Read all COBOL sources · 34 tool uses · 153.7k tokens
+   │  ⎿  Done
+   └─ Read all copybooks · 27 tool uses · 30.3k tokens
+      ⎿  Done
+
+● Now let me read the security SQL tables and BMS map to complete the picture.
+
+● Read 2 files (ctrl+o to expand)
+
+● Now I have a complete picture. Here is the full analysis:
+
+  ---
+  CICS GenApp - Complete Project Analysis
+
+  1. What This Project Does
+
+  CICS GenApp (General Insurance Application) is an IBM sample application that
+  simulates a general insurance company's policy management system running on
+  IBM z/OS mainframe using CICS Transaction Server and DB2. It manages customers
+   and their insurance policies across four product lines:
+
+  ┌────────────┬──────┬─────────────────────────────────────────────────────┐
+  │  Policy    │ Code │                     Description                     │
+  │    Type    │      │                                                     │
+  ├────────────┼──────┼─────────────────────────────────────────────────────┤
+  │ Motor      │ M    │ Vehicle insurance (make, model, registration,       │
+  │            │      │ accidents)                                          │
+  ├────────────┼──────┼─────────────────────────────────────────────────────┤
+  │ Endowment  │ E    │ Life/investment insurance (fund names, sum assured, │
+  │            │      │  profits)                                           │
+  ├────────────┼──────┼─────────────────────────────────────────────────────┤
+  │ House      │ H    │ Property insurance (bedrooms, value, property type) │
+  ├────────────┼──────┼─────────────────────────────────────────────────────┤
+  │ Commercial │ B    │ Business property insurance (perils: fire, crime,   │
+  │            │      │ flood, weather)                                     │
+  └────────────┴──────┴─────────────────────────────────────────────────────┘
+
+  Users interact via 3270 terminal screens (BMS maps) or web services
+  (SOA/SOAP).
+
+  ---
+  2. Architecture - Three-Tier Design
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                     PRESENTATION LAYER                          │
+  │  3270 Screens (ssmap.bms)          Web Services (SOA/SOAP)      │
+  │  ┌──────────┐ ┌──────────┐        ┌──────────────────────┐     │
+  │  │LGTESTC1  │ │LGTESTP1-4│        │ WSDL/Pipeline (JCL)  │     │
+  │  │Customer  │ │Policy    │        │ wsaac01, wsaip01, etc│     │
+  │  │  Menu    │ │  Menus   │        └──────────────────────┘     │
+  │  └────┬─────┘ └────┬─────┘                                     │
+  └───────┼─────────────┼──────────────────────────────────────────┘
+          │             │
+  ┌───────┼─────────────┼──────────────────────────────────────────┐
+  │       ▼      BUSINESS LOGIC LAYER                              │
+  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐             │
+  │  │LGICUS01 │ │LGACUS01 │ │LGUCUS01 │ │         │  Customer   │
+  │  │Inquire  │ │Add      │ │Update   │ │         │  Operations │
+  │  └────┬────┘ └────┬────┘ └────┬────┘ └─────────┘             │
+  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐             │
+  │  │LGIPOL01 │ │LGAPOL01 │ │LGUPOL01 │ │LGDPOL01 │  Policy     │
+  │  │Inquire  │ │Add      │ │Update   │ │Delete   │  Operations │
+  │  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘             │
+  └───────┼──────────┼──────────┼──────────┼───────────────────────┘
+          │          │          │          │
+  ┌───────┼──────────┼──────────┼──────────┼───────────────────────┐
+  │       ▼    DATA ACCESS LAYER ▼          ▼                      │
+  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐             │
+  │  │LGICDB01 │ │LGACDB01 │ │LGUCDB01 │ │LGDPDB01 │  DB2 Layer  │
+  │  │LGIPDB01 │ │LGAPDB01 │ │LGUPDB01 │ │         │             │
+  │  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘             │
+  │       │          │          │          │                       │
+  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐             │
+  │  │LGICVS01 │ │LGACVS01 │ │LGUCVS01 │ │LGDPVS01 │  VSAM Layer │
+  │  │LGIPVS01 │ │LGAPVS01 │ │LGUPVS01 │ │         │             │
+  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘             │
+  └────────────────────────────────────────────────────────────────┘
+          │                                    │
+     ┌────▼────┐                          ┌────▼────┐
+     │  DB2    │                          │  VSAM   │
+     │ Tables  │                          │  KSDS   │
+     └─────────┘                          └─────────┘
+
+  Supporting Programs
+
+  ┌──────────┬───────────────────────────────────────────────────────────────┐
+  │ Program  │                            Purpose                            │
+  ├──────────┼───────────────────────────────────────────────────────────────┤
+  │ LGAUTH01 │ Authentication service (login, password change, account       │
+  │          │ lock/unlock)                                                  │
+  ├──────────┼───────────────────────────────────────────────────────────────┤
+  │ LGPWHASH │ Password hashing via z/OS ICSF (SHA-256 + salt)               │
+  ├──────────┼───────────────────────────────────────────────────────────────┤
+  │ LGACDB02 │ Inserts customer security record into CUSTOMER_SECURE         │
+  ├──────────┼───────────────────────────────────────────────────────────────┤
+  │ LGSTSQ   │ Centralized error logging to TSQ/TDQ                          │
+  ├──────────┼───────────────────────────────────────────────────────────────┤
+  │ LGSETUP  │ Environment initialization (counters, queues)                 │
+  ├──────────┼───────────────────────────────────────────────────────────────┤
+  │ LGASTAT1 │ Debug/startup statistics collector                            │
+  ├──────────┼───────────────────────────────────────────────────────────────┤
+  │ LGWEBST5 │ Business monitor statistics writer                            │
+  └──────────┴───────────────────────────────────────────────────────────────┘
+
+  ---
+  3. Program Call Flows
+
+  Customer Inquiry Flow
+
+  LGTESTC1 (screen) ──LINK──► LGICUS01 (logic) ──LINK──► LGICDB01 (DB2 SELECT)
+
+  Customer Add Flow
+
+  LGTESTC1 (screen) ──LINK──► LGACUS01 (logic) ──LINK──► LGACDB01 (DB2 INSERT)
+                                                              ├──LINK──►
+  LGACVS01 (VSAM WRITE)
+                                                              └──LINK──►
+  LGACDB02 (security INSERT)
+
+  Customer Update Flow
+
+  LGTESTC1 (screen) ──LINK──► LGUCUS01 (logic) ──LINK──► LGUCDB01 (DB2 UPDATE)
+                                                              └──LINK──►
+  LGUCVS01 (VSAM REWRITE)
+
+  Policy Inquiry Flow
+
+  LGTESTP[1-4] (screen) ──LINK──► LGIPOL01 (logic) ──LINK──► LGIPDB01 (DB2
+  SELECT + cursor)
+
+  Policy Add Flow
+
+  LGTESTP[1-4] (screen) ──LINK──► LGAPOL01 (logic) ──LINK──► LGAPDB01 (DB2
+  INSERT)
+                                                                  └──LINK──►
+  LGAPVS01 (VSAM WRITE)
+
+  Policy Update Flow
+
+  LGTESTP[1-4] (screen) ──LINK──► LGUPOL01 (logic) ──LINK──► LGUPDB01 (DB2
+  UPDATE)
+                                                                  └──LINK──►
+  LGUPVS01 (VSAM REWRITE)
+
+  Policy Delete Flow
+
+  LGTESTP[1-4] (screen) ──LINK──► LGDPOL01 (logic) ──LINK──► LGDPDB01 (DB2
+  DELETE)
+                                                                  └──LINK──►
+  LGDPVS01 (VSAM DELETE)
+
+  Authentication Flow (Secure version)
+
+  LGACDB01_SECURE ──LINK──► LGAUTH01 ──LINK──► LGPWHASH (ICSF SHA-256)
+                                │                    ├── CSNBRNGL (random salt)
+                                │                    └── CSNBOWH  (hash)
+                                ├── DB2: USER_SECURITY
+                                ├── DB2: PASSWORD_HISTORY
+                                └── DB2: AUDIT_LOG
+
+  ---
+  4. Inter-Program Communication
+
+  All programs communicate via a COMMAREA (Communication Area) defined in
+  lgcmarea.cpy. The key routing field is:
+
+  ┌──────────────────────┬──────────────────────────────────────────────────┐
+  │        Field         │                   Description                    │
+  ├──────────────────────┼──────────────────────────────────────────────────┤
+  │ CA-REQUEST-ID (PIC   │ First 2 chars = operation code, determines which │
+  │ X(6))                │  program to call                                 │
+  └──────────────────────┴──────────────────────────────────────────────────┘
+
+  Request ID prefixes:
+
+  ┌──────────────────┬──────────────────┐
+  │      Prefix      │    Operation     │
+  ├──────────────────┼──────────────────┤
+  │ 01               │ Inquire Customer │
+  ├──────────────────┼──────────────────┤
+  │ 02               │ Add Customer     │
+  ├──────────────────┼──────────────────┤
+  │ 04               │ Update Customer  │
+  ├──────────────────┼──────────────────┤
+  │ 01 + policy type │ Inquire Policy   │
+  ├──────────────────┼──────────────────┤
+  │ 02 + policy type │ Add Policy       │
+  ├──────────────────┼──────────────────┤
+  │ 03 + policy type │ Delete Policy    │
+  ├──────────────────┼──────────────────┤
+  │ 04 + policy type │ Update Policy    │
+  └──────────────────┴──────────────────┘
+
+  ---
+  5. Data Dictionaries
+
+  5.1 DB2 Tables
+
+  CUSTOMER Table
+
+  ┌────────────────┬───────────────┬────────────────────────────────────────┐
+  │     Column     │     Type      │              Description               │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ CUSTOMERNUMBER │ INTEGER       │ Primary key, generated via named       │
+  │                │ (auto)        │ counter                                │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ FIRSTNAME      │ CHAR(10)      │ Customer first name                    │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ LASTNAME       │ CHAR(20)      │ Customer last name                     │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ DATEOFBIRTH    │ CHAR(10)      │ Date of birth (yyyy-mm-dd)             │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ HOUSENAME      │ CHAR(20)      │ House/building name                    │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ HOUSENUMBER    │ CHAR(4)       │ House number                           │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ POSTCODE       │ CHAR(8)       │ Postal code                            │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ PHONEMOBILE    │ CHAR(20)      │ Mobile phone number                    │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ PHONEHOME      │ CHAR(20)      │ Home phone number                      │
+  ├────────────────┼───────────────┼────────────────────────────────────────┤
+  │ EMAILADDRESS   │ CHAR(100)     │ Email address                          │
+  └────────────────┴───────────────┴────────────────────────────────────────┘
+
+  CUSTOMER_SECURE Table
+
+  ┌────────────────┬──────────┬────────────────────────────┐
+  │     Column     │   Type   │        Description         │
+  ├────────────────┼──────────┼────────────────────────────┤
+  │ CUSTOMERNUMBER │ INTEGER  │ FK to CUSTOMER             │
+  ├────────────────┼──────────┼────────────────────────────┤
+  │ PASSWORD       │ CHAR(32) │ Customer password (legacy) │
+  ├────────────────┼──────────┼────────────────────────────┤
+  │ STATE          │ CHAR(1)  │ Account state              │
+  └────────────────┴──────────┴────────────────────────────┘
+
+  POLICY Table
+
+  ┌────────────────┬──────────────────┬─────────────────────────────────────┐
+  │     Column     │       Type       │             Description             │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ CUSTOMERNUMBER │ INTEGER          │ FK to CUSTOMER                      │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ POLICYNUMBER   │ INTEGER          │ Auto-generated policy ID            │
+  │                │ (identity)       │                                     │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ POLICYTYPE     │ CHAR(1)          │ E=Endowment, H=House, M=Motor,      │
+  │                │                  │ C=Commercial                        │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ ISSUEDATE      │ CHAR(10)         │ Policy issue date                   │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ EXPIRYDATE     │ CHAR(10)         │ Policy expiry date                  │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ LASTCHANGED    │ CHAR(26)         │ Timestamp of last modification      │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ BROKERID       │ INTEGER          │ Broker identifier                   │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ BROKERSREF     │ CHAR(10)         │ Broker's reference                  │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ PAYMENT        │ INTEGER          │ Payment amount                      │
+  └────────────────┴──────────────────┴─────────────────────────────────────┘
+
+  ENDOWMENT Table
+
+  ┌──────────────┬──────────┬─────────────────────────┐
+  │    Column    │   Type   │       Description       │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ POLICYNUMBER │ INTEGER  │ FK to POLICY            │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ WITHPROFITS  │ CHAR(1)  │ With profits flag (Y/N) │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ EQUITIES     │ CHAR(1)  │ Equities flag (Y/N)     │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ MANAGEDFUND  │ CHAR(1)  │ Managed fund flag (Y/N) │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ FUNDNAME     │ CHAR(10) │ Fund name               │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ TERM         │ SMALLINT │ Term in years           │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ SUMASSURED   │ INTEGER  │ Sum assured amount      │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ LIFEASSURED  │ CHAR(31) │ Name of life assured    │
+  └──────────────┴──────────┴─────────────────────────┘
+
+  HOUSE Table
+
+  ┌──────────────┬──────────┬────────────────────┐
+  │    Column    │   Type   │    Description     │
+  ├──────────────┼──────────┼────────────────────┤
+  │ POLICYNUMBER │ INTEGER  │ FK to POLICY       │
+  ├──────────────┼──────────┼────────────────────┤
+  │ PROPERTYTYPE │ CHAR(15) │ Type of property   │
+  ├──────────────┼──────────┼────────────────────┤
+  │ BEDROOMS     │ SMALLINT │ Number of bedrooms │
+  ├──────────────┼──────────┼────────────────────┤
+  │ VALUE        │ INTEGER  │ Property value     │
+  ├──────────────┼──────────┼────────────────────┤
+  │ HOUSENAME    │ CHAR(20) │ House name         │
+  ├──────────────┼──────────┼────────────────────┤
+  │ HOUSENUMBER  │ CHAR(4)  │ House number       │
+  ├──────────────┼──────────┼────────────────────┤
+  │ POSTCODE     │ CHAR(8)  │ Postal code        │
+  └──────────────┴──────────┴────────────────────┘
+
+  MOTOR Table
+
+  ┌──────────────┬──────────┬──────────────────────┐
+  │    Column    │   Type   │     Description      │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ POLICYNUMBER │ INTEGER  │ FK to POLICY         │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ MAKE         │ CHAR(15) │ Vehicle make         │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ MODEL        │ CHAR(15) │ Vehicle model        │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ VALUE        │ INTEGER  │ Vehicle value        │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ REGNUMBER    │ CHAR(7)  │ Registration number  │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ COLOUR       │ CHAR(8)  │ Vehicle colour       │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ CC           │ SMALLINT │ Engine capacity (cc) │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ MANUFACTURED │ CHAR(10) │ Manufacture date     │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ PREMIUM      │ INTEGER  │ Insurance premium    │
+  ├──────────────┼──────────┼──────────────────────┤
+  │ ACCIDENTS    │ INTEGER  │ Number of accidents  │
+  └──────────────┴──────────┴──────────────────────┘
+
+  COMMERCIAL Table
+
+  ┌────────────────┬──────────────┬────────────────────────┐
+  │     Column     │     Type     │      Description       │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ POLICYNUMBER   │ INTEGER      │ FK to POLICY           │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ ADDRESS        │ VARCHAR(255) │ Business address       │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ POSTCODE       │ CHAR(8)      │ Postal code            │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ LATITUDE       │ CHAR(11)     │ GPS latitude           │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ LONGITUDE      │ CHAR(11)     │ GPS longitude          │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ CUSTOMER       │ VARCHAR(255) │ Customer/business name │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ PROPTYPE       │ VARCHAR(255) │ Property type          │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ FIREPERIL      │ SMALLINT     │ Fire peril rating      │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ FIREPREMIUM    │ INTEGER      │ Fire premium           │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ CRIMEPERIL     │ SMALLINT     │ Crime peril rating     │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ CRIMEPREMIUM   │ INTEGER      │ Crime premium          │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ FLOODPERIL     │ SMALLINT     │ Flood peril rating     │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ FLOODPREMIUM   │ INTEGER      │ Flood premium          │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ WEATHERPERIL   │ SMALLINT     │ Weather peril rating   │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ WEATHERPREMIUM │ INTEGER      │ Weather premium        │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ STATUS         │ SMALLINT     │ Policy status code     │
+  ├────────────────┼──────────────┼────────────────────────┤
+  │ REJECTREASON   │ VARCHAR(255) │ Rejection reason       │
+  └────────────────┴──────────────┴────────────────────────┘
+
+  USER_SECURITY Table (Security)
+
+  ┌────────────────┬──────────────────┬─────────────────────────────────────┐
+  │     Column     │       Type       │             Description             │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ CUSTOMERNUM    │ INTEGER PK       │ FK to CUSTOMER                      │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ USERNAME       │ VARCHAR(32)      │ Login username                      │
+  │                │ UNIQUE           │                                     │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ PASSWORD_HASH  │ VARCHAR(128)     │ SHA-256 hashed password             │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ SALT           │ VARCHAR(32)      │ Random salt for hashing             │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ HASH_ALGORITHM │ VARCHAR(8)       │ Algorithm used (default SHA256)     │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ PASSWORD_DATE  │ DATE             │ When password was last set          │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ LAST_LOGIN     │ TIMESTAMP        │ Last successful login               │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ LOGIN_ATTEMPTS │ SMALLINT         │ Failed login count (0-99)           │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ ACCOUNT_STATUS │ CHAR(1)          │ A=Active, L=Locked, S=Suspended,    │
+  │                │                  │ E=Expired                           │
+  ├────────────────┼──────────────────┼─────────────────────────────────────┤
+  │ LOCKOUT_TIME   │ TIMESTAMP        │ When account was locked             │
+  └────────────────┴──────────────────┴─────────────────────────────────────┘
+
+  PASSWORD_HISTORY Table
+
+  ┌───────────────┬─────────────────┬────────────────────────────┐
+  │    Column     │      Type       │        Description         │
+  ├───────────────┼─────────────────┼────────────────────────────┤
+  │ CUSTOMERNUM   │ INTEGER         │ FK to USER_SECURITY        │
+  ├───────────────┼─────────────────┼────────────────────────────┤
+  │ SEQUENCE      │ SMALLINT (1-10) │ History sequence number    │
+  ├───────────────┼─────────────────┼────────────────────────────┤
+  │ PASSWORD_HASH │ VARCHAR(128)    │ Previous password hash     │
+  ├───────────────┼─────────────────┼────────────────────────────┤
+  │ CREATED_DATE  │ DATE            │ When this password was set │
+  └───────────────┴─────────────────┴────────────────────────────┘
+
+  AUDIT_LOG Table
+
+  ┌──────────────┬──────────────────┬───────────────────────────────────────┐
+  │    Column    │       Type       │              Description              │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ LOG_ID       │ INTEGER          │ Auto-generated PK                     │
+  │              │ (identity)       │                                       │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ TIMESTAMP    │ TIMESTAMP        │ Event timestamp                       │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ CUSTOMER_NUM │ INTEGER          │ Customer involved                     │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ USERNAME     │ VARCHAR(32)      │ Username involved                     │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ ACTION       │ VARCHAR(20)      │ Action performed (AUTH, CHGPASS,      │
+  │              │                  │ etc.)                                 │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ RESULT       │ CHAR(2)          │ 00=Success, 01=Invalid creds,         │
+  │              │                  │ 02=Locked, etc.                       │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ CLIENT_IP    │ VARCHAR(15)      │ Client IP address                     │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ USER_AGENT   │ VARCHAR(100)     │ Client user agent                     │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ ERROR_CODE   │ VARCHAR(10)      │ Error code if failed                  │
+  ├──────────────┼──────────────────┼───────────────────────────────────────┤
+  │ DETAILS      │ VARCHAR(200)     │ Additional detail text                │
+  └──────────────┴──────────────────┴───────────────────────────────────────┘
+
+  SESSION_TOKENS Table
+
+  ┌───────────────┬────────────────┬────────────────────────────────┐
+  │    Column     │      Type      │          Description           │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ SESSION_ID    │ VARCHAR(64) PK │ Session token                  │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ CUSTOMERNUM   │ INTEGER        │ FK to USER_SECURITY            │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ USERNAME      │ VARCHAR(32)    │ Username                       │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ CREATED_TIME  │ TIMESTAMP      │ Session start                  │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ EXPIRY_TIME   │ TIMESTAMP      │ Session expiry                 │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ CLIENT_IP     │ VARCHAR(15)    │ Client IP                      │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ LAST_ACTIVITY │ TIMESTAMP      │ Last activity timestamp        │
+  ├───────────────┼────────────────┼────────────────────────────────┤
+  │ STATUS        │ CHAR(1)        │ A=Active, E=Expired, I=Invalid │
+  └───────────────┴────────────────┴────────────────────────────────┘
+
+  SECURITY_CONFIG Table
+
+  ┌──────────────┬────────────────┬──────────────────────────────┐
+  │    Column    │      Type      │         Description          │
+  ├──────────────┼────────────────┼──────────────────────────────┤
+  │ CONFIG_KEY   │ VARCHAR(50) PK │ Configuration parameter name │
+  ├──────────────┼────────────────┼──────────────────────────────┤
+  │ CONFIG_VALUE │ VARCHAR(200)   │ Configuration value          │
+  ├──────────────┼────────────────┼──────────────────────────────┤
+  │ DESCRIPTION  │ VARCHAR(500)   │ Human-readable description   │
+  └──────────────┴────────────────┴──────────────────────────────┘
+
+  5.2 VSAM Datasets
+
+  ┌──────────┬────────────┬───────────────────┬──────────┬──────────────────┐
+  │ Dataset  │  File ID   │        Key        │ Record   │   Description    │
+  │          │            │                   │   Size   │                  │
+  ├──────────┼────────────┼───────────────────┼──────────┼──────────────────┤
+  │ KSDSCUST │ Customer   │ Customer Number   │ 225      │ Customer records │
+  │          │ KSDS       │ (10 bytes)        │ bytes    │  mirror          │
+  ├──────────┼────────────┼───────────────────┼──────────┼──────────────────┤
+  │          │ Policy     │ Customer# +       │          │ Policy records   │
+  │ KSDSPOLY │ KSDS       │ Policy# (21       │ 64 bytes │ mirror           │
+  │          │            │ bytes)            │          │                  │
+  └──────────┴────────────┴───────────────────┴──────────┴──────────────────┘
+
+  5.3 COMMAREA Structure (lgcmarea.cpy)
+
+  The COMMAREA is a ~32,500 byte area shared between all programs:
+
+  ┌────────┬─────────────────────┬──────────┬────────────────────────────────┐
+  │ Offset │        Field        │   PIC    │          Description           │
+  ├────────┼─────────────────────┼──────────┼────────────────────────────────┤
+  │ 0      │ CA-REQUEST-ID       │ X(6)     │ Operation routing code         │
+  ├────────┼─────────────────────┼──────────┼────────────────────────────────┤
+  │ 6      │ CA-RETURN-CODE      │ 9(2)     │ 00=OK, other=error             │
+  ├────────┼─────────────────────┼──────────┼────────────────────────────────┤
+  │ 8      │ CA-CUSTOMER-NUM     │ 9(10)    │ Customer number                │
+  ├────────┼─────────────────────┼──────────┼────────────────────────────────┤
+  │ 18     │ CA-REQUEST-SPECIFIC │ X(32482) │ Varies by operation (see       │
+  │        │                     │          │ below)                         │
+  └────────┴─────────────────────┴──────────┴────────────────────────────────┘
+
+  For Customer requests, CA-REQUEST-SPECIFIC maps to:
+
+  ┌────────┬──────────────────┬────────┬────────────────────┐
+  │ Offset │      Field       │  PIC   │    Description     │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +0     │ CA-FIRST-NAME    │ X(10)  │ First name         │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +10    │ CA-LAST-NAME     │ X(20)  │ Last name          │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +30    │ CA-DOB           │ X(10)  │ Date of birth      │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +40    │ CA-HOUSE-NAME    │ X(20)  │ House name         │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +60    │ CA-HOUSE-NUM     │ X(4)   │ House number       │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +64    │ CA-POSTCODE      │ X(8)   │ Postal code        │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +72    │ CA-NUM-POLICIES  │ 9(3)   │ Number of policies │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +75    │ CA-PHONE-MOBILE  │ X(20)  │ Mobile phone       │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +95    │ CA-PHONE-HOME    │ X(20)  │ Home phone         │
+  ├────────┼──────────────────┼────────┼────────────────────┤
+  │ +115   │ CA-EMAIL-ADDRESS │ X(100) │ Email              │
+  └────────┴──────────────────┴────────┴────────────────────┘
+
+  For Policy requests, CA-REQUEST-SPECIFIC maps to:
+
+  ┌────────┬────────────────────┬──────────┬───────────────────────┐
+  │ Offset │       Field        │   PIC    │      Description      │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +0     │ CA-POLICY-NUM      │ 9(10)    │ Policy number         │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +10    │ CA-ISSUE-DATE      │ X(10)    │ Issue date            │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +20    │ CA-EXPIRY-DATE     │ X(10)    │ Expiry date           │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +30    │ CA-LASTCHANGED     │ X(26)    │ Last change timestamp │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +56    │ CA-BROKERID        │ 9(10)    │ Broker ID             │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +66    │ CA-BROKERSREF      │ X(10)    │ Broker reference      │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +76    │ CA-PAYMENT         │ 9(6)     │ Payment amount        │
+  ├────────┼────────────────────┼──────────┼───────────────────────┤
+  │ +82    │ CA-POLICY-SPECIFIC │ X(32400) │ Type-specific data    │
+  └────────┴────────────────────┴──────────┴───────────────────────┘
+
+  ---
+  6. Copybook Dependency Map
+
+  LGCMAREA.cpy ◄── Used by all business logic and data access programs
+  LGPOLICY.cpy ◄── Used by DB2 data access programs (lengths + DB2 host vars)
+  LGSECUR.cpy  ◄── Used by LGAUTH01, LGPWHASH, LGACDB01_SECURE
+  LGERR.cpy    ◄── Used by ~20 programs (error working storage)
+  LGERRPRC.cpy ◄── Used by ~20 programs (error handling procedures)
+  SSMAP (BMS)  ◄── Used by LGTESTC1, LGTESTP1-4 (screen I/O)
+  SOA*.cpy     ◄── Used by web service pipeline programs
+
+  ---
+  7. BMS Screen Map Summary
+
+  The application defines 6 screens in ssmap.bms:
+
+  ┌─────────┬──────┬───────────────────────┬────────────────────────────────┐
+  │   Map   │  ID  │         Title         │           Operations           │
+  ├─────────┼──────┼───────────────────────┼────────────────────────────────┤
+  │ SSMAPC1 │ SSC1 │ Customer Menu         │ Inquiry, Add, Update           │
+  ├─────────┼──────┼───────────────────────┼────────────────────────────────┤
+  │ SSMAPP1 │ SSP1 │ Motor Policy Menu     │ Inquiry, Add, Delete, Update   │
+  ├─────────┼──────┼───────────────────────┼────────────────────────────────┤
+  │ SSMAPP2 │ SSP2 │ Endowment Policy Menu │ Inquiry, Add, Delete, Update   │
+  ├─────────┼──────┼───────────────────────┼────────────────────────────────┤
+  │ SSMAPP3 │ SSP3 │ House Policy Menu     │ Inquiry, Add, Delete, Update   │
+  ├─────────┼──────┼───────────────────────┼────────────────────────────────┤
+  │ SSMAPP4 │ SSP4 │ Commercial Policy     │ Inquiry, Add, Delete (no       │
+  │         │      │ Menu                  │ Update)                        │
+  ├─────────┼──────┼───────────────────────┼────────────────────────────────┤
+  │ SSMAPP5 │ SSP5 │ Claim Menu            │ Inquiry, Add                   │
+  └─────────┴──────┴───────────────────────┴────────────────────────────────┘
+
+  ---
+  8. Error Handling
+
+  All programs use a centralized error handling pattern via two shared
+  copybooks:
+
+  1. LGERR.cpy - Defines ERROR-MSG working storage and WS-ERR-LOG-PGM = 'LGSTSQ'
+  2. LGERRPRC.cpy - Provides paragraphs:
+    - LGERR-FORMAT-TIME - Gets and formats current timestamp
+    - LGERR-WRITE-MSG - Writes error message to TSQ via EXEC CICS LINK 
+  PROGRAM('LGSTSQ')
+    - LGERR-LOG-COMMAREA - Logs first 90 bytes of COMMAREA for debugging
+
+  Error messages are written to Temporary Storage Queues (TSQs) and Transient 
+  Data Queue CSMT (CICS system log).
+
+  ---
+  9. Security Architecture
+
+  The security subsystem (added post-initial development) provides:
+
+  - SHA-256 password hashing via z/OS ICSF cryptographic services
+  - Random salt generation per user (32 bytes)
+  - Account lockout after 3 failed attempts (configurable, 30-minute duration)
+  - Password expiry after 90 days
+  - Password history (prevents reuse of last 5 passwords)
+  - Audit logging of all authentication events
+  - Session management with configurable timeouts
+
+✻ Crunched for 2m 53s
+
+❯ save this analysis to a markdown file 
+
+● Write(ANALYSIS.md)
+  ⎿  Wrote 446 lines to ANALYSIS.md
+       1 # CICS GenApp - Complete Project Analysis
+       2 
+       3 ## 1. What This Project Does
+       4 
+       5 **CICS GenApp** (General Insurance Application) is an IBM sample
+          application that simulates a **general insurance company's poli
+         cy management system** running on IBM z/OS mainframe using CICS 
+         Transaction Server and DB2. It manages **customers** and their *
+         *insurance policies** across four product lines:
+       6 
+       7 | Policy Type | Code | Description |
+       8 |---|---|---|
+       9 | **Motor** | M | Vehicle insurance (make, model, registration, 
+         accidents) |
+      10 | **Endowment** | E | Life/investment insurance (fund names, sum
+          assured, profits) |
+     … +436 lines (ctrl+o to expand)
+
+● Written to ANALYSIS.md in the project root. The file contains all 10 sections:
+   project overview, architecture diagram, call flows, inter-program
+  communication, full data dictionaries (DB2 tables, VSAM datasets, COMMAREA
+  structures), copybook dependencies, BMS screen maps, error handling, security
+  architecture, and the complete program inventory table.
+
+✻ Baked for 1m 19s
+
+❯ Please provide recommendations for improving this codebase. 
+
+● Let me examine specific code patterns to ground my recommendations in actual
+  findings.
+
+● 3 Explore agents finished (ctrl+o to expand)
+   ├─ Audit code quality issues · 28 tool uses · 79.1k tokens
+   │  ⎿  Done
+   ├─ Check test coverage gaps · 43 tool uses · 82.2k tokens
+   │  ⎿  Done
+   └─ Review architecture docs · 34 tool uses · 69.1k tokens
+      ⎿  Done
+
+● Here are my recommendations, organized by priority and category:
+
+  ---
+  Recommendations for Improving the CICS GenApp Codebase
+
+  Critical (Blocking Issues)
+
+  1. Security Tables Missing from DB2 Schema
+
+  The LGAUTH01 and LGPWHASH programs reference tables (USER_SECURITY,
+  PASSWORD_HISTORY, AUDIT_LOG) that are defined in security_tables.sql but not 
+  included in db2cre.jcl - the actual DB2 provisioning job. These programs will
+  fail at runtime with table-not-found errors. The existing customer_secure
+  table in db2cre.jcl uses a 32-byte password field (MD5 format), while the new
+  auth module expects 128 bytes (SHA-256). These schemas are incompatible.
+
+  Fix: Integrate security_tables.sql DDL into the db2cre.jcl build job and
+  create a migration path from the legacy customer_secure table.
+
+  2. Hardcoded Password Hash in Production Code
+
+  lgacdb01.cbl:177-178 contains a hardcoded MD5 hash:
+  move '5732fec825535eeafb8fac50fee3a8aa'
+                      To  D2-CUSTSECR-PASS.
+  This same hash also appears in db2cre.jcl sample data. Every new customer gets
+   the same password. The secure version (lgacdb01_secure.cbl) fixes this by
+  generating dynamic temporary passwords, but the non-secure version is still
+  the one referenced by the build job.
+
+  Fix: Replace lgacdb01.cbl with lgacdb01_secure.cbl in the compilation
+  pipeline, or remove the hardcoded credential entirely.
+
+  3. Security Programs Not in Compilation Job
+
+  LGAUTH01.cbl and LGPWHASH.cbl are not listed in cobol.jcl. They will never be
+  compiled or deployed, making the entire authentication subsystem dead code.
+
+  Fix: Add both programs to the COBOL compilation JCL.
+
+  ---
+  High Priority (Reliability & Correctness)
+
+  4. Missing RESP Checking on CICS LINK Calls
+
+  Multiple business-logic programs issue EXEC CICS LINK without a RESP clause,
+  meaning if the called program fails to load or abends, execution continues
+  with undefined results:
+
+  ┌──────────────┬──────────┬─────────────────────────┐
+  │   Program    │   Line   │ Missing RESP on LINK to │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ lgapol01.cbl │ ~117     │ LGAPDB01                │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ lgacus01.cbl │ ~129     │ LGACDB01                │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ lgipol01.cbl │ ~86      │ LGIPDB01                │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ lgdpol01.cbl │ ~136     │ LGDPDB01                │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ lgucus01.cbl │ ~similar │ LGUCDB01                │
+  ├──────────────┼──────────┼─────────────────────────┤
+  │ lgupol01.cbl │ ~similar │ LGUPDB01                │
+  └──────────────┴──────────┴─────────────────────────┘
+
+  The secure version (lgacdb01_secure.cbl) demonstrates the correct pattern with
+   RESP(WS-RESP) and explicit checking. All LINK calls should follow that model.
+
+  5. Possible COMMAREA Size Check Bug
+
+  lgacdb01_secure.cbl:154-157:
+  IF WS-CALEN < 32767
+      MOVE '98' TO CA-RETURN-CODE
+      PERFORM 9000-RETURN
+  END-IF
+  This rejects any COMMAREA smaller than 32,767 bytes, but callers typically
+  pass shorter areas. Compare to the correct pattern in lgacdb01.cbl which
+  checks against a defined minimum (WS-REQUIRED-CA-LEN). This may be a logic bug
+   preventing the secure version from working.
+
+  6. Inconsistent SQLCODE Error Handling
+
+  INSERT operations handle SQL errors differently across programs:
+  - lgapdb01.cbl uses EVALUATE SQLCODE checking for specific codes (-530 FK
+  violation)
+  - lgacdb01.cbl uses simple IF SQLCODE NOT EQUAL 0
+  - lgucdb01.cbl and lgdpdb01.cbl have their own variations
+
+  Fix: Standardize SQL error handling into a shared pattern (similar to what
+  LGERRPRC.cpy does for CICS errors). Create a SQL error handling copybook.
+
+  7. No Input Validation at Business Logic Boundary
+
+  While all SQL uses parameterized queries (safe from injection), no program
+  validates business data before processing:
+  - Dates aren't validated for format (yyyy-mm-dd)
+  - Numeric fields aren't range-checked
+  - Postcodes, email addresses, phone numbers aren't validated
+  - Policy types aren't validated before routing
+
+  Invalid data silently flows through to DB2, where it either gets stored
+  incorrectly or triggers cryptic SQL errors.
+
+  ---
+  Medium Priority (Test Coverage & Maintainability)
+
+  8. Zero Test Coverage for Security Subsystem
+
+  LGAUTH01 (1,089 lines) and LGPWHASH (508 lines) have no test programs and no 
+  WSIM scenarios. Functions untested include: authentication, password change,
+  account lockout, password expiry, password history validation, and audit
+  logging.
+
+  Fix: Create a dedicated LGTESTAUTH program that exercises each authentication
+  function, and add WSIM scenarios for the login flow.
+
+  9. No Error Path Testing
+
+  All existing WSIM test scenarios test only the happy path. No scenarios
+  deliberately trigger:
+  - Invalid customer/policy numbers
+  - Duplicate key violations
+  - DB2 or VSAM unavailability
+  - COMMAREA size errors
+  - Concurrent access conflicts
+
+  10. Missing Test Coverage for Specific Operations
+
+  ┌─────────────────────┬───────────────────────────────────────────────────┐
+  │         Gap         │                      Impact                       │
+  ├─────────────────────┼───────────────────────────────────────────────────┤
+  │ Customer Delete     │ No delete operation exists at all (no option 3 in │
+  │                     │  LGTESTC1)                                        │
+  ├─────────────────────┼───────────────────────────────────────────────────┤
+  │ Commercial Policy   │ No WSIM scenario (ssp4u1.txt missing), screen     │
+  │ Update              │ option commented out                              │
+  ├─────────────────────┼───────────────────────────────────────────────────┤
+  │ Claims (SSMAPP5)    │ BMS screen defined but no backing COBOL program   │
+  │                     │ exists                                            │
+  └─────────────────────┴───────────────────────────────────────────────────┘
+
+  11. Magic Numbers and Code Smells
+
+  lgipdb01.cbl:902-904:
+  If ICOM-Record-Count > 20
+    Move 17 To SQLCODE
+  End-If
+  Hardcoded limit of 20 records and faking SQLCODE=17 to break out of a cursor
+  loop. This should use a named constant and a proper loop-control variable
+  instead of corrupting SQLCODE.
+
+  12. Unused Variables
+
+  lgacdb01_secure.cbl:51 defines LGAC-RETRY-TIMES PIC 9 VALUE 9 which is never
+  referenced anywhere in the program.
+
+  ---
+  Architectural Recommendations (Longer Term)
+
+  13. Eliminate VSAM/DB2 Dual Storage
+
+  Every write operation updates both DB2 and VSAM (via paired LINK calls to DB
+  and VS programs). This doubles I/O, requires two-phase commit coordination,
+  and creates consistency risks. The VSAM files (KSDSCUST, KSDSPOLY) appear to
+  be used only by the LGICVS01/LGIPVS01 random-record lookup programs.
+
+  Fix: Migrate random-record lookup logic to DB2 (e.g., SELECT ... ORDER BY 
+  RAND() or counter-based approach) and decommission VSAM programs entirely.
+
+  14. Replace TSQ-Based Error Logging
+
+  Errors are written to Temporary Storage Queues via LGSTSQ, which are volatile
+  and have limited query capability. Consider structured logging to DB2 or an
+  external logging facility.
+
+  15. Modernize Counter Management
+
+  Customer numbers use named counters (EXEC CICS READCOUNTER) requiring a Named
+  Counter Server. Policy numbers already use DB2 IDENTITY columns. Standardize
+  on DB2 identity columns for all auto-generated IDs.
+
+  16. Add RESTful API Layer
+
+  The SOA copybooks (soaic01.cpy, soaip*.cpy) suggest web service capability
+  exists, but the architecture is primarily 3270-based. CICS TS supports
+  JSON/REST natively - the existing business logic programs could be exposed as
+  REST APIs with minimal wrapper programs.
+
+  17. Update Documentation
+
+  Reference.md, Building.md, and Installation.md don't mention the security
+  subsystem (LGAUTH01, LGPWHASH, LGSECUR.cpy, security tables). Document the
+  authentication architecture and migration strategy.
+
+  18. Compiler Options
+
+  The current cobol.jcl uses minimal options. Consider adding:
+  - OPT(2) for optimization
+  - SSRANGE for runtime bounds checking (at least in test)
+  - FLAG(W) to surface all compiler warnings
+
+  ---
+  Summary
+
+  ┌───────────────┬───────┬──────────────────────────────────────────────────┐
+  │   Priority    │ Count │                    Key Theme                     │
+  ├───────────────┼───────┼──────────────────────────────────────────────────┤
+  │ Critical      │ 3     │ Security infrastructure not wired into           │
+  │               │       │ build/deploy                                     │
+  ├───────────────┼───────┼──────────────────────────────────────────────────┤
+  │ High          │ 4     │ Missing error handling, input validation,        │
+  │               │       │ possible bug                                     │
+  ├───────────────┼───────┼──────────────────────────────────────────────────┤
+  │ Medium        │ 5     │ Test gaps, code smells, dead code                │
+  ├───────────────┼───────┼──────────────────────────────────────────────────┤
+  │ Architectural │ 6     │ Dual storage, logging, APIs, documentation       │
+  └───────────────┴───────┴──────────────────────────────────────────────────┘
+
+  The most impactful immediate action is completing the security integration:
+  add the security DDL to db2cre.jcl, add LGAUTH01/LGPWHASH to cobol.jcl,
+  replace the hardcoded password, and fix the COMMAREA check in the secure
+  version. This unblocks the entire authentication subsystem that has been built
+   but never connected.
+
+✻ Crunched for 2m 33s
+
+❯ save these recommendations to a markdown file 
+
+● Write(RECOMMENDATIONS.md)
+  ⎿  Wrote 144 lines to RECOMMENDATIONS.md
+       1 # Recommendations for Improving the CICS GenApp Codebase
+       2 
+       3 ## Critical (Blocking Issues)
+       4 
+       5 ### 1. Security Tables Missing from DB2 Schema
+       6 The `LGAUTH01` and `LGPWHASH` programs reference tables (`USER_S
+         ECURITY`, `PASSWORD_HISTORY`, `AUDIT_LOG`) that are defined in `
+         security_tables.sql` but **not included in `db2cre.jcl`** - the 
+         actual DB2 provisioning job. These programs will fail at runtime
+          with table-not-found errors. The existing `customer_secure` tab
+         le in `db2cre.jcl` uses a 32-byte password field (MD5 format), w
+         hile the new auth module expects 128 bytes (SHA-256). These sche
+         mas are incompatible.
+       7 
+       8 **Fix:** Integrate `security_tables.sql` DDL into the `db2cre.jc
+         l` build job and create a migration path from the legacy `custom
+         er_secure` table.
+       9 
+      10 ### 2. Hardcoded Password Hash in Production Code
+     … +134 lines (ctrl+o to expand)
+
+● Written to RECOMMENDATIONS.md in the project root.
+
+❯ /export 
+  ⎿  Conversation exported to:
+     2026-02-25-190644-please-explain-what-the-code-in-this-project-does.txt
+
+❯ Assess each source code file in the 'base\src' directory and produce an   
+  individual description of each file that includes a detailed breakdown of 
+   its functionality, an explantion of its key components and logic,        
+  information about input/output behavior, details of any algorithms or     
+  techniques used, and analysis of its overall functionality and purpose.   
+  Export the individual descriptions to markdown files named so that they a 
+   recognizably associated with their corresponding source code file.       
+
+● I'll analyze every source file in base/src and produce individual markdown
+  descriptions. Let me start by getting the complete file list, then process
+  them in parallel.
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Bash(mkdir -p D:/Users/peter/OneDrive/Repos/cics-genapp/base/src/docs)
+  ⎿  Done
+
+● I'll now process all source files in parallel batches. There are 45 source
+  files (COBOL, copybooks, BMS, SQL, and a text file). I'll launch agents to
+  read and document them.
+
+● 6 Task agents finished (ctrl+o to expand)
+   ├─ Document COBOL batch 1 · 26 tool uses · 48.2k tokens
+   │  ⎿  Done
+   ├─ Document COBOL batch 2 · 25 tool uses · 52.1k tokens
+   │  ⎿  Done
+   ├─ Document COBOL batch 3 · 26 tool uses · 57.3k tokens
+   │  ⎿  Done
+   ├─ Document COBOL batch 4 · 26 tool uses · 66.3k tokens
+   │  ⎿  Done
+   ├─ Document COBOL batch 5 · 12 tool uses · 39.8k tokens
+   │  ⎿  Done
+   └─ Document copybooks and other · 50 tool uses · 85.6k tokens
+      ⎿  Done
+
+● All 45 source files have been documented. Let me verify the output.
+
+● Read 2 files (ctrl+o to expand)
+
+● One file is missing - let me check which one.
+
+● Bash(diff <(ls -1 D:/Users/peter/OneDrive/Repos/cics-genapp/base/src/ | grep
+      -v '\.md$' | sed 's/$/.md/' | sort) <(ls -1
+      D:/Users/peter/OneDrive/Repos/cics-genapp/ba…)
+  ⎿  Error: Exit code 1
+     6d5
+     < docs.md
+
+     6d5
+     < docs.md
+
+● That's just the docs directory itself showing up as a diff - not an actual
+  missing file. All 53 source files have corresponding markdown documentation.
+
+  Done. 53 individual markdown files have been created in base/src/docs/, one
+  for each source file in base/src/. Each is named to match its source file
+  (e.g., lgacdb01.cbl → lgacdb01.cbl.md). The documentation covers:
+
+  ┌────────────────────┬───────┬────────────────────────────────────────────┐
+  │      Category      │ Files │                  Examples                  │
+  ├────────────────────┼───────┼────────────────────────────────────────────┤
+  │ COBOL programs     │ 34    │ lgacdb01.cbl.md, LGAUTH01.cbl.md,          │
+  │ (.cbl)             │       │ lgtestc1.cbl.md                            │
+  ├────────────────────┼───────┼────────────────────────────────────────────┤
+  │ Copybooks (.cpy)   │ 16    │ lgcmarea.cpy.md, LGSECUR.cpy.md,           │
+  │                    │       │ soaipm1.cpy.md                             │
+  ├────────────────────┼───────┼────────────────────────────────────────────┤
+  │ BMS map (.bms)     │ 1     │ ssmap.bms.md                               │
+  ├────────────────────┼───────┼────────────────────────────────────────────┤
+  │ SQL (.sql)         │ 1     │ security_tables.sql.md                     │
+  ├────────────────────┼───────┼────────────────────────────────────────────┤
+  │ Text (.txt)        │ 1     │ linkparm.txt.md                            │
+  └────────────────────┴───────┴────────────────────────────────────────────┘
+
+  Each COBOL file includes: Overview, Functional Breakdown, Key Components and
+  Logic, Input/Output Behavior, Algorithms and Techniques, and Analysis.
+  Copybooks, BMS, and SQL files use adapted section structures appropriate to
+  their file types. Notable bugs found during analysis (e.g., copy-paste errors
+  in lgtestp2/lgtestp3 writing to wrong screen fields) are called out in the
+  Analysis sections.
+
+✻ Worked for 11m 45s

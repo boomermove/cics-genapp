@@ -39,10 +39,10 @@
            03 WS-ADDR-DFHCOMMAREA      USAGE is POINTER.
            03 WS-CALEN                 PIC S9(4) COMP.
 
-      * Variables for time/date processing
-       01  ABS-TIME                    PIC S9(8) COMP VALUE +0.
-       01  TIME1                       PIC X(8)  VALUE SPACES.
-       01  DATE1                       PIC X(10) VALUE SPACES.
+      *----------------------------------------------------------------*
+      * Common error handling copybook                                 *
+      *----------------------------------------------------------------*
+           COPY LGERR.
 
       * Error Message structure
        01  ERROR-MSG.
@@ -58,11 +58,6 @@
              05 EM-SQLREQ              PIC X(16) VALUE SPACES.
              05 FILLER                 PIC X(9)  VALUE ' SQLCODE='.
              05 EM-SQLRC               PIC +9(5) USAGE DISPLAY.
-
-       01  CA-ERROR-MSG.
-           03 FILLER                   PIC X(9)  VALUE 'COMMAREA='.
-           03 CA-DATA                  PIC X(90) VALUE SPACES.
-      *----------------------------------------------------------------*
 
       *----------------------------------------------------------------*
       * Definitions required for data manipulation                     *
@@ -990,41 +985,22 @@
            EXIT.
 
       *================================================================*
-      * Procedure to write error message to TD QUEUE(CSMT)             *
-      *   message will include Date, Time, Program Name, Customer      *
-      *   Number, Policy Number and SQLCODE.                           *
+      * Procedure to write error message to Queues                     *
+      *   Uses common error handling from LGERR/LGERRPRC copybooks     *
       *================================================================*
        WRITE-ERROR-MESSAGE.
       * Save SQLCODE in message
            MOVE SQLCODE TO EM-SQLRC
-      * Obtain and format current time and date
-           EXEC CICS ASKTIME ABSTIME(ABS-TIME)
-           END-EXEC
-           EXEC CICS FORMATTIME ABSTIME(ABS-TIME)
-                     MMDDYYYY(DATE1)
-                     TIME(TIME1)
-           END-EXEC
-           MOVE DATE1 TO EM-DATE
-           MOVE TIME1 TO EM-TIME
-      * Write output message to TDQ
-           EXEC CICS LINK PROGRAM('LGSTSQ')
-                     COMMAREA(ERROR-MSG)
-                     LENGTH(LENGTH OF ERROR-MSG)
-           END-EXEC.
-      * Write 90 bytes or as much as we have of commarea to TDQ
-           IF EIBCALEN > 0 THEN
-             IF EIBCALEN < 91 THEN
-               MOVE DFHCOMMAREA(1:EIBCALEN) TO CA-DATA
-               EXEC CICS LINK PROGRAM('LGSTSQ')
-                         COMMAREA(CA-ERROR-MSG)
-                         LENGTH(LENGTH OF CA-ERROR-MSG)
-               END-EXEC
-             ELSE
-               MOVE DFHCOMMAREA(1:90) TO CA-DATA
-               EXEC CICS LINK PROGRAM('LGSTSQ')
-                         COMMAREA(CA-ERROR-MSG)
-                         LENGTH(LENGTH OF CA-ERROR-MSG)
-               END-EXEC
-             END-IF
-           END-IF.
-           EXIT.
+      * Format time and date
+           PERFORM LGERR-FORMAT-TIME
+           MOVE WS-ERR-DATE TO EM-DATE
+           MOVE WS-ERR-TIME TO EM-TIME
+      * Write error message and commarea to TSQ
+           PERFORM LGERR-WRITE-MSG
+           PERFORM LGERR-LOG-COMMAREA
+           .
+
+      *----------------------------------------------------------------*
+      * Common error handling procedures from copybook                 *
+      *----------------------------------------------------------------*
+           COPY LGERRPRC.
